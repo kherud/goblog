@@ -1,0 +1,49 @@
+<!-- 7640689, 4875373, 9348226 -->
+{{ define "mainContent" }}
+{{ if .initial }}
+<div class="text-center">
+{{ if .previews }}
+{{ if .search }}
+    <h1>Search results for '<span class="font-italic">{{ .search }}'</span></h1>
+{{ else }}
+    <h1>Recent posts</h1>
+{{ end }}
+{{ end }}
+</div>
+<div class="container">
+    <div class="row">
+        <div class="col-lg-8 col-md-10 mx-auto">
+{{ end }}
+            {{ if .previews }}{{ range .previews }}
+            <div class="post-preview">
+                <a href="?id={{ .Id }}">
+                    <h1 class="post-title">{{ .Title }}</h1>
+                </a>
+                <p class="post-meta">Posted by
+                    <span class="text-italics">{{ .Author }}</span>
+                    on {{ .Date }}</p>
+            </div>
+            {{ end }} {{ else }}
+                {{ if .search }}
+                    <h1>No entries found containing '{{ .search }}'.</h1>
+                {{ else }}
+                    <div class="text-center">
+                        <h1>No entries yet.</h1>
+                    </div>
+                {{ end}}
+            {{ end }}
+            {{ if .more }}
+            <div id="more-content-placeholder">
+            <hr>
+            <!-- Pager -->
+            <div class="clearfix text-center">
+                <a class="btn btn-secondary" onclick="requestMorePosts('{{ .index }}')" href="#more-content-placeholder">Older Posts &rarr;</a>
+            </div>
+            </div>
+            {{ end }}
+{{ if .initial }}
+        </div>
+    </div>
+</div>
+{{ end }}
+{{ end }}

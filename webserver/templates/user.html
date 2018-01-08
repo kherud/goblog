@@ -1,0 +1,33 @@
+<!-- 7640689, 4875373, 9348226 -->
+{{ define "mainContent" }}
+<div class="container">
+    <div class="text-center user-creation-container">
+        <div class="site-heading text-center">
+            <h1>Change password...</h1>
+        </div>
+        <form action="?password" method="post" id="change-password-form">
+            <input placeholder="New Password" class="user-creation-input" type="password" name="password"><br>
+            <input placeholder="Confirm Password" class="user-creation-input" type="password" name="password-confirmation"><br>
+            <span id="change-password-error"></span>
+            <button class="btn btn-secondary user-creation-input" type="submit">Change</button>
+        </form>
+    </div>
+    {{ if .user.Admin }}
+    <hr>
+    <div class="text-center user-creation-container">
+        <div class="site-heading text-center">
+            <h1>Create an user...</h1>
+        </div>
+        <form action="?newUser" method="post" id="user-creation-form">
+            <input placeholder="Name" class="user-creation-input" type="text" name="name"><br>
+            <input placeholder="Password" class="user-creation-input" type="password" name="password"><br>
+            <input placeholder="Confirm Password" class="user-creation-input" type="password" name="password-confirmation"><br>
+            <input type="checkbox" id="admin-checkbox" name="admin">
+            <label for="admin-checkbox" id="admin-checkbox-label">Admin</label><br>
+            <span id="user-creation-error"></span>
+            <button class="btn btn-secondary user-creation-input" type="submit">Create</button>
+        </form>
+    </div>
+    {{ end }}
+</div>
+{{ end }}

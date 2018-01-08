@@ -1,0 +1,859 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <style>
+        body {
+            background: black;
+            color: rgb(80, 80, 80);
+        }
+        body, pre, #legend span {
+            font-family: Menlo, monospace;
+            font-weight: bold;
+        }
+        #topbar {
+            background: black;
+            position: fixed;
+            top: 0; left: 0; right: 0;
+            height: 42px;
+            border-bottom: 1px solid rgb(80, 80, 80);
+        }
+        #content {
+            margin-top: 50px;
+        }
+        #nav, #legend {
+            float: left;
+            margin-left: 10px;
+        }
+        #legend {
+            margin-top: 12px;
+        }
+        #nav {
+            margin-top: 10px;
+        }
+        #legend span {
+            margin: 0 5px;
+        }
+        .cov0 { color: rgb(192, 0, 0) }
+        .cov1 { color: rgb(128, 128, 128) }
+        .cov2 { color: rgb(116, 140, 131) }
+        .cov3 { color: rgb(104, 152, 134) }
+        .cov4 { color: rgb(92, 164, 137) }
+        .cov5 { color: rgb(80, 176, 140) }
+        .cov6 { color: rgb(68, 188, 143) }
+        .cov7 { color: rgb(56, 200, 146) }
+        .cov8 { color: rgb(44, 212, 149) }
+        .cov9 { color: rgb(32, 224, 152) }
+        .cov10 { color: rgb(20, 236, 155) }
+
+    </style>
+</head>
+<body>
+<div id="topbar">
+    <div id="nav">
+        <select id="files">
+
+            <option value="file0">de\vorlesung\projekt\dmk\backend\authentication.go (100.0%)</option>
+
+            <option value="file1">de\vorlesung\projekt\dmk\backend\postControlling.go (100.0%)</option>
+
+            <option value="file2">de\vorlesung\projekt\dmk\backend\storageControlling.go (85.2%)</option>
+
+            <option value="file3">de\vorlesung\projekt\dmk\backend\userControlling.go (100.0%)</option>
+
+            <option value="file4">de\vorlesung\projekt\dmk\webserver\handleRequest.go (86.5%)</option>
+
+            <option value="file5">de\vorlesung\projekt\dmk\util\utils.go (94.6%)</option>
+
+        </select>
+    </div>
+    <div id="legend">
+        <span>not tracked</span>
+
+        <span class="cov0">not covered</span>
+        <span class="cov8">covered</span>
+
+    </div>
+</div>
+<div id="content">
+
+		<pre class="file" id="file0" style="display: none">package backend
+
+import (
+        "net/http"
+        "time"
+        "strings"
+        "github.com/kherud/goblog/config"
+        "github.com/kherud/goblog/util"
+        "github.com/kherud/goblog/backend/models"
+)
+
+func SetSession(username string, w http.ResponseWriter) <span class="cov8" title="1">{
+        expiration := time.Now().Add(time.Minute * time.Duration(config.SESSION_TIME))        //expiration time for cookies
+        sessionId := util.CreateSessionId()        //creation of a sessionID
+        persistSession(username, sessionId)
+        cookie := http.Cookie{Name: "Session", Value: username + "#" + sessionId, Expires: expiration}        //specifies cookie informations
+        http.SetCookie(w, &amp;cookie)
+}</span>
+
+func EndSession(r *http.Request)<span class="cov8" title="1">{
+        cookie, err := r.Cookie("Session")
+        if err != nil </span><span class="cov8" title="1">{
+                return
+        }</span>
+
+        <span class="cov8" title="1">username, _ := processCookie(cookie.Value)
+        user, err := GetUser(username)
+
+        if err != nil </span><span class="cov8" title="1">{
+                return
+        }</span>
+
+        <span class="cov8" title="1">user.Session = ""
+        saveUser(user)</span>
+}
+
+func CheckAuthentication(r *http.Request) (models.User, bool) <span class="cov8" title="1">{
+        // Tutorial used from http://austingwalters.com/building-a-web-server-in-go-web-cookies/
+        cookie, err := r.Cookie("Session")
+        if err != nil </span><span class="cov8" title="1">{
+                return models.User{}, false
+        }</span>
+
+        <span class="cov8" title="1">username, sessionId := processCookie(cookie.Value)
+        user, err := GetUser(username)
+        if err != nil </span><span class="cov8" title="1">{
+                return models.User{}, false
+        }</span>
+        <span class="cov8" title="1">return user, sessionId == user.Session &amp;&amp; len(user.Session) &gt; 0</span>
+}
+
+//checks if session cookie exists
+func processCookie(cookieValue string) (string, string) <span class="cov8" title="1">{
+        credentials := strings.Split(cookieValue, "#")
+        username := credentials[0]
+        sessionId := credentials[1]
+        return username, sessionId
+}</span>
+
+</pre>
+
+    <pre class="file" id="file1" style="display: none">package backend
+
+import (
+        "time"
+        "errors"
+        "strconv"
+        "net/http"
+        "fmt"
+        "unicode/utf8"
+        "github.com/kherud/goblog/backend/models"
+        "github.com/kherud/goblog/util"
+)
+
+//saves created comments to blog posts
+func SaveComment(r *http.Request, postId string) <span class="cov8" title="1">{
+        if r.FormValue("text") == "" </span><span class="cov8" title="1">{
+                return
+        }</span>
+        <span class="cov8" title="1">var author string
+        if r.FormValue("name") == "" </span><span class="cov8" title="1">{
+                author = "Anonymous"
+        }</span><span class="cov8" title="1"> else {
+                author = r.FormValue("name")
+        }</span>
+        <span class="cov8" title="1">uintPostId, _ := strconv.ParseUint(postId, 10, 32)
+        entries := GetEntries()
+        for idx, post := range entries </span><span class="cov8" title="1">{
+                if post.Id == uint32(uintPostId) </span><span class="cov8" title="1">{
+                        date := time.Now().Local().Format("02.01.2006 - 15:04")
+                        comment := models.Comment{
+                                Text:   r.FormValue("text"),
+                                Author: author,
+                                Date:   date,
+                                Id:     util.CreateHashId(date, author, r.FormValue("text")),
+                        }
+                        entries[idx].Comments = append([]models.Comment{comment}, post.Comments...)
+                        saveEntriesJson(entries)
+                }</span>
+        }
+}
+
+//returns posts
+func GetPost(id string) (post models.Entry, err error) <span class="cov8" title="1">{
+        entries := GetEntries()
+        for _, entry := range entries </span><span class="cov8" title="1">{
+                if strconv.Itoa(int(entry.Id)) == id </span><span class="cov8" title="1">{
+                        return entry, nil
+                }</span>
+        }
+        <span class="cov8" title="1">return models.Entry{}, errors.New("entry not found")</span>
+}
+
+//verifies a comment, if user is logged in
+func VerifyComment(r *http.Request) bool <span class="cov8" title="1">{
+        _, loggedIn := CheckAuthentication(r)
+        var postId, commentId string
+        if err := r.ParseForm(); err == nil &amp;&amp; loggedIn </span><span class="cov8" title="1">{
+                postId = r.FormValue("postId")
+                commentId = r.FormValue("commentId")
+        }</span><span class="cov8" title="1"> else {
+                return false
+        }</span>
+        <span class="cov8" title="1">entries := GetEntries()
+        for entryIdx, entry := range entries </span><span class="cov8" title="1">{
+                if strconv.Itoa(int(entry.Id)) == postId </span><span class="cov8" title="1">{
+                        for commentIdx, comment := range entry.Comments </span><span class="cov8" title="1">{
+                                if strconv.Itoa(int(comment.Id)) == commentId </span><span class="cov8" title="1">{
+                                        entries[entryIdx].Comments[commentIdx].Verified = true
+                                        saveEntriesJson(entries)
+                                        return true
+                                }</span>
+                        }
+                }
+        }
+        <span class="cov8" title="1">return false</span>
+}
+
+//allows logged in user to create posts
+func CreatePost(r *http.Request) uint32 <span class="cov8" title="1">{
+        user, loggedIn := CheckAuthentication(r)
+        if !loggedIn </span><span class="cov8" title="1">{
+                return 0
+        }</span>
+        <span class="cov8" title="1">post := assemblePost(r, user)
+        if post.Id != 0 </span><span class="cov8" title="1">{
+                savePost(post)
+        }</span>
+        <span class="cov8" title="1">return post.Id</span>
+}
+
+//verfied users can delete their posts
+func DeletePost(r *http.Request) bool <span class="cov8" title="1">{
+        user, loggedIn := CheckAuthentication(r)
+        if err := r.ParseForm(); err == nil &amp;&amp; loggedIn </span><span class="cov8" title="1">{
+                postId := r.FormValue("postId")
+                entries := GetEntries()
+                for idx, entry := range entries </span><span class="cov8" title="1">{
+                        if strconv.Itoa(int(entry.Id)) == postId &amp;&amp; entry.AuthorId == user.Id </span><span class="cov8" title="1">{
+                                entries = append(entries[:idx], entries[idx+1:]...)
+                                saveEntriesJson(entries)
+                                return true
+                        }</span>
+                }
+        }
+        <span class="cov8" title="1">return false</span>
+}
+
+//filters the posts for an individual keyword
+func FilterPosts(entries []models.Entry, searchterm string) (result []models.Entry) <span class="cov8" title="1">{
+        for _, element := range entries </span><span class="cov8" title="1">{
+                for _, keyword := range element.Keywords </span><span class="cov8" title="1">{
+                        if keyword == searchterm </span><span class="cov8" title="1">{
+                                result = append(result, element)
+                        }</span>
+                }
+        }
+        <span class="cov8" title="1">return</span>
+}
+
+//updates a post :]
+func UpdatePost(r *http.Request, postId string) bool <span class="cov8" title="1">{
+        user, loggedIn := CheckAuthentication(r)
+        if err := r.ParseForm(); err == nil &amp;&amp; loggedIn </span><span class="cov8" title="1">{
+                entries := GetEntries()
+                for idx, entry := range entries </span><span class="cov8" title="1">{
+                        if strconv.Itoa(int(entry.Id)) == postId &amp;&amp; entry.AuthorId == user.Id </span><span class="cov8" title="1">{
+                                newPost := assemblePost(r, user)
+                                newPost.Comments = entry.Comments
+                                newPost.Id = entry.Id
+                                subSlice := append(entries[:idx], entries[idx+1:]...)
+                                entries = append([]models.Entry{newPost}, subSlice...)
+                                saveEntriesJson(entries)
+                                return true
+                        }</span>
+                }
+        }
+        <span class="cov8" title="1">return false</span>
+}
+
+func assemblePost(r *http.Request, user models.User) models.Entry <span class="cov8" title="1">{
+        entries := GetEntries()
+        date := time.Now().Local().Format("02.01.2006 - 15:04")
+        var title string
+        if title = r.FormValue("title"); title == "" </span><span class="cov8" title="1">{
+                title = fmt.Sprintf("Post #%v", len(entries)+1)
+        }</span>
+        <span class="cov8" title="1">if err := r.ParseForm(); err != nil || utf8.RuneCountInString(r.FormValue("text")) == 0 </span><span class="cov8" title="1">{
+                return models.Entry{}
+        }</span>
+        <span class="cov8" title="1">postId := util.CreateHashId(date, user.UserName, r.FormValue("text"))
+        entry := models.Entry{
+                Text:     r.FormValue("text"),
+                Title:    title,
+                Author:   user.UserName,
+                AuthorId: user.Id,
+                Date:     date,
+                Id:       postId,
+                Keywords: r.Form["tag"],
+        }
+        return entry</span>
+}
+
+//saves a post
+func savePost(entry models.Entry) <span class="cov8" title="1">{
+        entries := GetEntries()
+        if entries == nil || len(entries) == 0 </span><span class="cov8" title="1">{
+                entries = []models.Entry{entry}
+        }</span><span class="cov8" title="1"> else {
+                entries = append([]models.Entry{entry}, entries...)
+        }</span>
+        <span class="cov8" title="1">saveEntriesJson(entries)</span>
+}
+</pre>
+
+    <pre class="file" id="file2" style="display: none">package backend
+
+import (
+        "encoding/json"
+        "io/ioutil"
+        "fmt"
+        "os"
+        "github.com/kherud/goblog/config"
+        "github.com/kherud/goblog/backend/models"
+)
+
+//returns the users
+
+func GetUsers() []models.User <span class="cov8" title="1">{
+        raw := readFile(config.USERS_FILE_PATH)
+        var entries []models.User
+        json.Unmarshal(raw, &amp;entries)
+        return entries
+}</span>
+
+//returns the entries
+func GetEntries() []models.Entry <span class="cov8" title="1">{
+        raw := readFile(config.ENTRIES_FILE_PATH)
+        var entries []models.Entry
+        json.Unmarshal(raw, &amp;entries)
+        return entries
+}</span>
+
+//saves json data
+func saveUsersJson(users []models.User) <span class="cov8" title="1">{
+        file, err := os.Create(config.USERS_FILE_PATH)
+        if err != nil </span><span class="cov0" title="0">{
+                panic(err)</span>
+        }
+        <span class="cov8" title="1">defer file.Close()
+        encoder := json.NewEncoder(file)
+        if err := encoder.Encode(users); err != nil </span><span class="cov0" title="0">{
+                panic(err)</span>
+        }
+}
+
+func saveEntriesJson(entries []models.Entry) <span class="cov8" title="1">{
+        file, err := os.Create(config.ENTRIES_FILE_PATH)
+        if err != nil </span><span class="cov0" title="0">{
+                panic(err)</span>
+        }
+        <span class="cov8" title="1">defer file.Close()
+        encode := json.NewEncoder(file)
+        if err := encode.Encode(entries); err != nil </span><span class="cov0" title="0">{
+                panic(err)</span>
+        }
+}
+
+//reads file
+func readFile(path string) []byte <span class="cov8" title="1">{
+        raw, err := ioutil.ReadFile(path)
+        if err != nil </span><span class="cov8" title="1">{
+                fmt.Println(err.Error())
+                return nil
+        }</span>
+        <span class="cov8" title="1">return raw</span>
+}
+</pre>
+
+    <pre class="file" id="file3" style="display: none">package backend
+
+import (
+        "fmt"
+        "errors"
+        "net/http"
+        "unicode/utf8"
+        "github.com/kherud/goblog/util"
+        "github.com/kherud/goblog/backend/models"
+        "github.com/kherud/goblog/config"
+)
+
+func EnsureUserExists(reader util.Reader) <span class="cov8" title="1">{
+        users := GetUsers()
+        if users == nil || len(users) == 0 </span><span class="cov8" title="1">{
+                user := createInitialUser(reader)
+                saveUsersJson([]models.User{user})
+                fmt.Printf("User '%v' successfully created.\n", user.UserName)
+        }</span>
+}
+
+func GetUser(username string) (user models.User, err error) <span class="cov8" title="1">{
+        users := GetUsers()
+        for _, user := range users </span><span class="cov8" title="1">{
+                if user.UserName == username </span><span class="cov8" title="1">{
+                        return user, nil
+                }</span>
+        }
+        <span class="cov8" title="1">return models.User{}, errors.New("user not found")</span>
+}
+
+func AuthenticateUser(username, password string) bool <span class="cov8" title="1">{
+        users := GetUsers()
+        for _, user := range users </span><span class="cov8" title="1">{
+                if compareCredentials(user, username, password) </span><span class="cov8" title="1">{
+                        return true
+                }</span>
+        }
+        <span class="cov8" title="1">return false</span>
+}
+
+func persistSession(username, sessionId string) <span class="cov8" title="1">{
+        users := GetUsers()
+        for _, user := range users </span><span class="cov8" title="1">{
+                if user.UserName == username </span><span class="cov8" title="1">{
+                        user.Session = sessionId
+                        saveUser(user)
+                        return
+                }</span>
+        }
+}
+
+func compareCredentials(user models.User, username, password string) bool <span class="cov8" title="1">{
+        if user.UserName == username </span><span class="cov8" title="1">{
+                return util.HashPassword(password, user.Id) == user.Password
+        }</span>
+        <span class="cov8" title="1">return false</span>
+}
+
+func createInitialUser(reader util.Reader) models.User <span class="cov8" title="1">{
+        fmt.Println("Please create an account since currently none exists.")
+        fmt.Printf("- username: at least %d chars.\n", config.MIN_USERNAME_LENGTH)
+        fmt.Printf("- password: at least %d chars.\n", config.MIN_PASSWORD_LENGTH)
+        username := util.ReadUsername(reader, config.MIN_USERNAME_LENGTH)
+        id := util.CreateHashId(username)
+        password := util.ReadPassword(reader, id, config.MIN_PASSWORD_LENGTH)
+        return models.User{UserName: username, Password: password, Id: id, Admin: true}
+}</span>
+
+func updateUsers(users []models.User, user models.User) []models.User <span class="cov8" title="1">{
+        for index, record := range users </span><span class="cov8" title="1">{
+                if record.Id == user.Id </span><span class="cov8" title="1">{
+                        users[index] = user
+                        break</span>
+                }
+        }
+        <span class="cov8" title="1">return users</span>
+}
+
+func saveUser(user models.User) <span class="cov8" title="1">{
+        users := GetUsers()
+        if users == nil || len(users) == 0 </span><span class="cov8" title="1">{
+                users = []models.User{user}
+        }</span><span class="cov8" title="1"> else {
+                users = updateUsers(users, user)
+        }</span>
+        <span class="cov8" title="1">saveUsersJson(users)</span>
+}
+
+func CreateUser(r *http.Request) (user string, err string) <span class="cov8" title="1">{
+        _, loggedIn := CheckAuthentication(r)
+        if err := r.ParseForm(); err == nil &amp;&amp; loggedIn </span><span class="cov8" title="1">{
+                name, password, passwordConfirmation := r.FormValue("name"), r.FormValue("password"), r.FormValue("password-confirmation")
+                users := GetUsers()
+                for _, record := range users </span><span class="cov8" title="1">{
+                        if record.UserName == name </span><span class="cov8" title="1">{
+                                return "", "Username already exists.\n"
+                        }</span>
+                }
+                <span class="cov8" title="1">if password != passwordConfirmation </span><span class="cov8" title="1">{
+                        return "", "Passwords don't match.\n"
+                }</span>
+                <span class="cov8" title="1">if utf8.RuneCountInString(name) &lt; config.MIN_USERNAME_LENGTH || utf8.RuneCountInString(password) &lt; config.MIN_PASSWORD_LENGTH </span><span class="cov8" title="1">{
+                        return "", fmt.Sprintf("Username must have at least %v chars.\nPassword must have at least %v chars.\n", config.MIN_USERNAME_LENGTH, config.MIN_PASSWORD_LENGTH)
+                }</span>
+                <span class="cov8" title="1">admin := false
+                if r.FormValue("admin") == "on" </span><span class="cov8" title="1">{
+                        admin = true
+                }</span>
+                <span class="cov8" title="1">id := util.CreateHashId(name)
+                password = util.HashPassword(password, id)
+                user := models.User{UserName: name, Id: id, Password: password, Admin: admin}
+                users = append(users, user)
+                saveUsersJson(users)
+                return name, ""</span>
+        }<span class="cov8" title="1"> else {
+                return "", "Something went wrong."
+        }</span>
+}
+
+func ChangePassword(r *http.Request) string <span class="cov8" title="1">{
+        user, loggedIn := CheckAuthentication(r)
+        if err := r.ParseForm(); err == nil &amp;&amp; loggedIn </span><span class="cov8" title="1">{
+                password, passwordConfirmation := r.FormValue("password"), r.FormValue("password-confirmation")
+                if password != passwordConfirmation </span><span class="cov8" title="1">{
+                        return "Passwords don't match.\n"
+                }</span>
+                <span class="cov8" title="1">if utf8.RuneCountInString(password) &lt; config.MIN_PASSWORD_LENGTH </span><span class="cov8" title="1">{
+                        return fmt.Sprintf("Password must have at least %v chars.\n", config.MIN_PASSWORD_LENGTH)
+                }</span>
+                <span class="cov8" title="1">password = util.HashPassword(password, user.Id)
+                users := GetUsers()
+                for idx, record := range users </span><span class="cov8" title="1">{
+                        if record.Id == user.Id </span><span class="cov8" title="1">{
+                                users[idx].Password = password
+                        }</span>
+                }
+                <span class="cov8" title="1">saveUsersJson(users)
+                return ""</span>
+        }<span class="cov8" title="1"> else {
+                return "Something went wrong.\n"
+        }</span>
+}
+</pre>
+
+    <pre class="file" id="file4" style="display: none">package webserver
+
+import (
+        "net/http"
+        "log"
+        "html/template"
+        "path/filepath"
+        "fmt"
+        "strconv"
+        "github.com/kherud/goblog/config"
+        "github.com/kherud/goblog/backend"
+        "github.com/kherud/goblog/backend/models"
+)
+
+/**
+Starts the web server using https. Declares different handlers for static files, page &amp; login/-out requests
+ */
+func StartServer() <span class="cov0" title="0">{
+        fs := http.FileServer(http.Dir(config.STATIC_FILE_PATH))
+        http.Handle("/static/", http.StripPrefix("/static/", fs))
+        http.HandleFunc("/", returnContent)
+        http.HandleFunc("/login", loginUser)
+        http.HandleFunc("/logout", logoutUser)
+        err := http.ListenAndServeTLS(":"+config.DEFAULT_PORT, config.CERT_FILE, config.KEY_FILE, nil)
+        if err != nil </span><span class="cov0" title="0">{
+                log.Fatal("ListenAndServe: ", err)
+        }</span>
+}
+
+/**
+Routes requests appropriate to their GET parameter. If none or an arbitrary one exists the index page is returned.
+Therefor hands over necessary variables to 'assembleTemplate()': responseWriter, request, loginRequired, templateName, requestedPage and parameter (GET value).
+Since the pages mostly consist of two templates with one of them being the static content (header, footer, ...) only one template name is passed that determines the dynamic main content.
+The parameter value is used to pass GET values (e.g. post index id)
+ */
+func returnContent(w http.ResponseWriter, r *http.Request) <span class="cov8" title="1">{
+        parameters := r.URL.Query()
+        for key := range parameters </span><span class="cov8" title="1">{
+                switch key </span>{
+                case "id":<span class="cov8" title="1"> // Display a whole post (param: post id)
+                        assembleTemplate(w, r, false, "post.html", "post", parameters.Get("id"))</span>
+                case "comment":<span class="cov8" title="1"> // Persists a comment then displays the appropriate post (param: post id belonging to the comment)
+                        backend.SaveComment(r, parameters.Get("comment"))
+                        http.Redirect(w, r, "https://"+r.Host+"?id="+parameters.Get("comment"), http.StatusMovedPermanently)</span>
+                case "post":<span class="cov8" title="1"> // Displays the post creation site
+                        assembleTemplate(w, r, true, "createPost.html", "create", "")</span>
+                case "user":<span class="cov8" title="1"> // Displays the user page (change password / create user if admin)
+                        assembleTemplate(w, r, true, "user.html", "user", "")</span>
+                case "search":<span class="cov8" title="1"> // Displays the index page with results filtered by a keyword (param: keyword)
+                        assembleTemplate(w, r, false, "postPreview.html", "index", parameters.Get("search"))</span>
+                case "more":<span class="cov8" title="1"> // Responses to an ajax request to load more posts (default 5) if there are more (param: amount of posts already displayed -&gt; index)
+                        assembleSingleTemplate(w, r, "postPreview.html", "more", parameters.Get("more"))</span>
+                case "newPost":<span class="cov8" title="1"> // Tries to persist a new post and shows it if successful. Otherwise returns to the post creation site.
+                        id := backend.CreatePost(r)
+                        if id == 0 </span><span class="cov8" title="1">{
+                                assembleTemplate(w, r, true, "createPost.html", "create", "")
+                        }</span><span class="cov0" title="0"> else {
+                                http.Redirect(w, r, "https://"+r.Host+"?id="+strconv.Itoa(int(id)), http.StatusMovedPermanently)
+                        }</span>
+                case "newUser":<span class="cov8" title="1"> // Ajax request to persist an user. Returns the username or an error message (e.g. 'Konstantin#' or '#Error Message')
+                        name, err := backend.CreateUser(r)
+                        w.Write([]byte(name + "#" + err))</span>
+                case "delete":<span class="cov8" title="1"> // Ajax request to delete a post. Returns a string representing the success bool value.
+                        w.Write([]byte(strconv.FormatBool(backend.DeletePost(r))))</span>
+                case "edit":<span class="cov8" title="1"> // Shows the post editing page (param: post id)
+                        assembleTemplate(w, r, true, "editPost.html", "post", parameters.Get("edit"))</span>
+                case "update":<span class="cov8" title="1"> // Tries to apply edits to a post and then returns it (param: post id)
+                        id := parameters.Get("update")
+                        backend.UpdatePost(r, id)
+                        http.Redirect(w, r, "https://"+r.Host+"?id="+id, http.StatusMovedPermanently)</span>
+                case "password":<span class="cov8" title="1"> // Ajax request to change a password. Possibly returns an error message.
+                        err := backend.ChangePassword(r)
+                        w.Write([]byte(err))</span>
+                case "verify":<span class="cov8" title="1"> // Ajax request to verify a comment. Returns a string representing the success bool value.
+                        success := backend.VerifyComment(r)
+                        w.Write([]byte(strconv.FormatBool(success)))</span>
+                default:<span class="cov8" title="1"> // Returns the index page (listing of recent posts) for unknown GET parameters.
+                        assembleTemplate(w, r, false, "postPreview.html", "index", "")</span>
+                }
+                <span class="cov8" title="1">return</span> // only consider first parameter
+        }
+        // If no GET parameter exists the index page is returned.
+        <span class="cov8" title="1">assembleTemplate(w, r, false, "postPreview.html", "index", "")</span>
+}
+
+/**
+Assembles an html page.
+Checks if a login is necessary to view the page / if the user is logged in. If the user lacks access he is redirected to the index page.
+Otherwise inserts the dynamic content (templateName) into the static template (header, footer, ...).
+Therefor appropriate page variables are loaded that always include information about an existing authentication.
+Then returns the result of the assembled html template.
+ */
+func assembleTemplate(w http.ResponseWriter, r *http.Request, loginRequired bool, templateName, page, parameter string) (int, error) <span class="cov8" title="1">{
+        if _, loggedIn := backend.CheckAuthentication(r); loginRequired &amp;&amp; !loggedIn </span><span class="cov8" title="1">{
+                http.Redirect(w, r, "https://"+r.Host, http.StatusMovedPermanently)
+                return 401, nil
+        }</span>
+        <span class="cov8" title="1">staticContent := filepath.Join(config.TEMPLATE_PATH, "index.html")
+        dynamicContent := filepath.Join(config.TEMPLATE_PATH, templateName)
+        tmpl, err := template.ParseFiles(staticContent, dynamicContent)
+        if err != nil </span><span class="cov0" title="0">{
+                fmt.Println(err)
+                return 500, err
+        }</span>
+
+        <span class="cov8" title="1">entries := getPageVars(page, r, parameter)
+        tmpl.Execute(w, entries)
+        return 0, nil</span>
+}
+
+/**
+Inserts variables into a single template (always postPreview.html).
+Only used to answer the ajax request for loading more posts.
+The parameter value is used to identify the index of the requested posts.
+ */
+func assembleSingleTemplate(w http.ResponseWriter, r *http.Request, templateName, page, parameter string) (int, error) <span class="cov8" title="1">{
+        lp := filepath.Join(config.TEMPLATE_PATH, templateName)
+        tmpl, err := template.New("mainContent").ParseFiles(lp)
+        if err != nil </span><span class="cov0" title="0">{
+                fmt.Println(err)
+                return 500, err
+        }</span>
+        <span class="cov8" title="1">entries := getPageVars(page, r, parameter)
+        tmpl.Execute(w, entries)
+        return 0, nil</span>
+}
+
+/**
+Loads information from the backend appropriate to a requested site.
+The parameter (GET) value is used to give required information (e.g. id of the requested post)
+ */
+func getPageVars(page string, r *http.Request, parameter string) map[string]interface{} <span class="cov8" title="1">{
+        entries := map[string]interface{}{}
+        switch page </span>{
+        case "index":<span class="cov8" title="1">
+                entries = getIndexVars(parameter)</span>
+        case "more":<span class="cov8" title="1">
+                entries = getLoadMoreVars(parameter)</span>
+        case "post":<span class="cov8" title="1">
+                // if an error occurs this variable is empty -&gt; 404 message displayed, e.g. /?id=0
+                entries["post"], _ = backend.GetPost(parameter)</span>
+        }
+        // If the request reveals an existing session further information about the user is provided
+        <span class="cov8" title="1">if user, found := backend.CheckAuthentication(r); found </span><span class="cov8" title="1">{
+                entries["user"] = user
+        }</span>
+        <span class="cov8" title="1">return entries</span>
+}
+
+/**
+Loads required variables of the index page, including:
+- initial: are the displayed posts the first ones? (&lt;-&gt; load more)
+- previews: information about posts to assemble their preview within the index page.
+- search: search phrase / keyword defined by the GET parameter. If set the posts are appropriately filtered.
+- more/index: if more posts exist a flag is set and the index to load more content is provided.
+ */
+func getIndexVars(parameter string) map[string]interface{} <span class="cov8" title="1">{
+        entries := map[string]interface{}{}
+        entries["initial"] = true
+        entries["previews"] = backend.GetEntries()
+        if parameter != "" </span><span class="cov8" title="1">{
+                entries["previews"] = backend.FilterPosts(entries["previews"].([]models.Entry), parameter)
+                entries["search"] = parameter
+        }</span><span class="cov8" title="1"> else {
+                if length := len(entries["previews"].([]models.Entry)); length &gt; config.POSTS_PER_REQUESTS </span><span class="cov8" title="1">{
+                        entries["previews"] = entries["previews"].([]models.Entry)[:config.POSTS_PER_REQUESTS]
+                        entries["more"] = true
+                        entries["index"] = config.POSTS_PER_REQUESTS
+                }</span>
+        }
+        <span class="cov8" title="1">return entries</span>
+}
+
+/**
+Loads required variables to reponse to an ajax request to load more posts.
+- initial: are the displayed posts the first ones? (&lt;-&gt; load more)
+- previews: information about posts to assemble their preview within the index page.
+- search: search phrase / keyword defined by the GET parameter. If set the posts are appropriately filtered.
+- more/index: if more posts exist a flag is set and the index to load more content is provided.
+ */
+func getLoadMoreVars(parameter string) map[string]interface{} <span class="cov8" title="1">{
+        entries := map[string]interface{}{}
+        entries["previews"] = backend.GetEntries()
+        index, _ := strconv.Atoi(parameter)
+        lengthLeft := len(entries["previews"].([]models.Entry)) - index
+        if lengthLeft &gt;= config.POSTS_PER_REQUESTS </span><span class="cov8" title="1">{
+                entries["previews"] = entries["previews"].([]models.Entry)[index:index+config.POSTS_PER_REQUESTS]
+                if lengthLeft &gt; config.POSTS_PER_REQUESTS </span><span class="cov8" title="1">{
+                        entries["more"] = true
+                        entries["index"] = index + config.POSTS_PER_REQUESTS
+                }</span>
+        }<span class="cov8" title="1"> else {
+                entries["previews"] = entries["previews"].([]models.Entry)[index:]
+        }</span>
+        <span class="cov8" title="1">return entries</span>
+}
+
+func loginUser(w http.ResponseWriter, r *http.Request) <span class="cov8" title="1">{
+        username := r.FormValue("username")
+        password := r.FormValue("password")
+        if backend.AuthenticateUser(username, password) </span><span class="cov8" title="1">{
+                fmt.Println("Login:", username)
+                backend.SetSession(username, w)
+                w.Write([]byte("success"))
+        }</span><span class="cov8" title="1"> else {
+                w.Write([]byte("failed to login"))
+        }</span>
+}
+
+func logoutUser(w http.ResponseWriter, r *http.Request) <span class="cov8" title="1">{
+        backend.EndSession(r)
+        http.Redirect(w, r, "https://"+r.Host, http.StatusMovedPermanently)
+        return
+}</span>
+</pre>
+
+    <pre class="file" id="file5" style="display: none">package util
+
+import (
+        "fmt"
+        "strings"
+        "unicode/utf8"
+        "hash/fnv"
+        "time"
+        "crypto/sha256"
+        "encoding/base64"
+        "math/rand"
+        "strconv"
+)
+
+type Reader interface {
+        ReadString(byte) (string, error)
+}
+
+type ReaderFunc func (byte) (string, error)
+
+//reads the username
+func ReadUsername(reader Reader, minimumLength int) string <span class="cov8" title="1">{
+        var username string
+        for utf8.RuneCountInString(username) &lt; minimumLength </span><span class="cov8" title="1">{
+                fmt.Print("Enter a valid username: ")
+                text, err := reader.ReadString('\n')
+                if err != nil </span><span class="cov0" title="0">{
+                        continue</span>
+                }
+                <span class="cov8" title="1">text = strings.TrimSpace(text)
+                username = text</span>
+        }
+        <span class="cov8" title="1">return username</span>
+}
+
+// reads the password
+func ReadPassword(reader Reader, id uint32, minimumLength int) string <span class="cov8" title="1">{
+        var password string
+        for utf8.RuneCountInString(password) &lt; minimumLength </span><span class="cov8" title="1">{
+                fmt.Print("Enter a valid password: ")
+                text, err := reader.ReadString('\n')
+                if err != nil </span><span class="cov0" title="0">{
+                        continue</span>
+                }
+                <span class="cov8" title="1">text = strings.TrimSpace(text)
+                password = text</span>
+        }
+        <span class="cov8" title="1">return HashPassword(password, id)</span>
+}
+
+//hashes the password
+func HashPassword(password string, id uint32) string <span class="cov8" title="1">{
+        shaHash := sha256.New()
+        saltIndex := utf8.RuneCountInString(password) / 2
+        saltedPassword := password[:saltIndex] + strconv.Itoa(int(id)) + password[saltIndex:]
+        shaHash.Write([]byte(saltedPassword))
+        return base64.URLEncoding.EncodeToString(shaHash.Sum(nil))
+}</span>
+
+//creates an hashid
+func CreateHashId(prehash ... string) uint32 <span class="cov8" title="1">{
+        preHash := strconv.FormatInt(time.Now().UnixNano(), 10)
+        for _, element := range prehash </span><span class="cov8" title="1">{
+                preHash += element
+        }</span>
+        <span class="cov8" title="1">hash32 := fnv.New32()
+        hash32.Write([]byte(preHash))
+        return hash32.Sum32()</span>
+}
+
+//creates the sessionID for the cookie
+func CreateSessionId() string <span class="cov8" title="1">{
+        // https://stackoverflow.com/a/31832326/4812335
+        const letterBytes = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890"
+        const (
+                letterIdxBits = 6                    // 6 bits to represent a letter index
+                letterIdxMask = 1&lt;&lt;letterIdxBits - 1 // All 1-bits, as many as letterIdxBits
+        )
+
+        b := make([]byte, 128)
+        for i := 0; i &lt; 128; </span><span class="cov8" title="1">{
+                if idx := int(rand.Int63() &amp; letterIdxMask); idx &lt; len(letterBytes) </span><span class="cov8" title="1">{
+                        b[i] = letterBytes[idx]
+                        i++
+                }</span>
+        }
+        <span class="cov8" title="1">return string(b)</span>
+}</pre>
+
+</div>
+</body>
+<script>
+    (function() {
+        var files = document.getElementById('files');
+        var visible;
+        files.addEventListener('change', onChange, false);
+        function select(part) {
+            if (visible)
+                visible.style.display = 'none';
+            visible = document.getElementById(part);
+            if (!visible)
+                return;
+            files.value = part;
+            visible.style.display = 'block';
+            location.hash = part;
+        }
+        function onChange() {
+            select(files.value);
+            window.scrollTo(0, 0);
+        }
+        if (location.hash != "") {
+            select(location.hash.substr(1));
+        }
+        if (!visible) {
+            select("file0");
+        }
+    })();
+</script>
+</html>

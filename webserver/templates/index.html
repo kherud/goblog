@@ -1,0 +1,144 @@
+<!-- 7640689, 4875373, 9348226 -->
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <title>DMK Blog</title>
+
+    <!-- Bootstrap core CSS -->
+    <link href="static/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Custom fonts for this template -->
+    <link href="static/vendor/font-awesome/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+    <link href='https://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic' rel='stylesheet'
+          type='text/css'>
+    <link href='https://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800'
+          rel='stylesheet' type='text/css'>
+
+    <!-- Custom styles for this template -->
+    <link href="static/css/clean-blog.min.css" rel="stylesheet">
+    <link href="static/css/style.css" rel="stylesheet">
+
+</head>
+
+<body>
+
+<!-- Navigation -->
+<nav class="navbar navbar-expand-lg navbar-light fixed-top" id="mainNav">
+    <div class="container">
+        <button class="navbar-toggler navbar-toggler-right" type="button" data-toggle="collapse"
+                data-target="#navbarResponsive" aria-controls="navbarResponsive" aria-expanded="false"
+                aria-label="Toggle navigation">
+            Menu
+            <i class="fa fa-bars"></i>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarResponsive">
+            <ul class="navbar-nav ml-auto">
+                {{ if .user }}
+                <li class="nav-item">
+                    <a class="nav-link" href="?account">User</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="?post">New Post</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/logout">Logout</a>
+                </li>
+                {{ else }}
+                <li class="nav-item">
+                    <a class="nav-link" href="#" data-toggle="modal" data-target="#login-modal">Login</a>
+                </li>
+                {{ end }}
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<!-- Page Header -->
+<header class="masthead" style="background-image: url('static/img/background.jpg')">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-md-10 mx-auto">
+                <div class="site-heading">
+                    <a href="/"><h1>DMK Blog</h1></a>
+                    <span class="subheading">A Blog by Dzhoana Yordanova, Moritz Koch and Konstantin Herud</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+<!-- Main Content -->
+{{ template "mainContent" . }}
+
+<hr>
+
+<div id="login-modal" class="modal fade" role="dialog">
+    <canvas id="q" data-dismiss="modal"></canvas>
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h1 class="modal-title">Please login</h1>
+            </div>
+            <div class="modal-body">
+                <form method="post" id="login-form">
+                    <fieldset class="input-group-vertical">
+                        <div class="form-group">
+                            <label class="sr-only">Username</label>
+                            <input type="text" class="form-control login-input" placeholder="Username" name="username">
+                        </div>
+                        <div class="form-group">
+                            <label class="sr-only">Password</label>
+                            <input type="password" class="form-control login-input" placeholder="Password" name="password">
+                        </div>
+                        <div class="form-group">
+                            <button class="btn btn-lg btn-primary btn-block" type="submit">Login</button>
+                        </div>
+                        <div class="alert alert-danger" id="credentials-invalid">
+                            <strong>Error!</strong> The given credentials were invalid.
+                        </div>
+                        <div class="alert alert-danger" id="credentials-error">
+                            <strong>Error!</strong> Something went wrong trying to log you in.
+                        </div>
+                        <div class="alert alert-success" id="credentials-valid">
+                            <strong>Success!</strong> You are now being forwarded.
+                        </div>
+                    </fieldset>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Footer -->
+<footer>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-md-10 mx-auto">
+                <p class="copyright text-muted">Dzhoana Yordanova, Moritz Koch and Konstantin Herud</p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- Bootstrap core JavaScript -->
+<script src="static/vendor/jquery/jquery.min.js"></script>
+<script src="static/vendor/popper/popper.min.js"></script>
+<script src="static/vendor/bootstrap/js/bootstrap.min.js"></script>
+
+<!-- Custom scripts for this template -->
+<script src="static/js/clean-blog.min.js"></script>
+<script src="static/js/main.js"></script>
+
+</body>
+
+</html>

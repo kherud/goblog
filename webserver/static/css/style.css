@@ -1,0 +1,156 @@
+/* 7640689, 4875373, 9348226 */
+
+.site-heading a {
+    color: white;
+}
+
+.site-heading a:hover {
+    color: white;
+}
+
+#credentials-invalid, #credentials-valid, #credentials-error {
+    display: none;
+}
+
+.modal-footer button {
+    margin: 0 auto;
+}
+
+.modal-header h1 {
+    margin: 0 auto;
+}
+
+.input-group-vertical {
+    margin-bottom: 10px;
+}
+
+.form-control {
+    border-radius: 0;
+    font-family: 'Open Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif
+}
+
+.form-group {
+    margin-bottom: 0;
+}
+
+.form-group:not(:last-child) .form-control:not(:focus) {
+    border-bottom-color: transparent;
+}
+
+.form-group:first-child .form-control {
+    border-top-left-radius: 3px;
+    border-top-right-radius: 3px;
+}
+
+.form-group:last-child .btn {
+    border-bottom-right-radius: 3px;
+    border-bottom-left-radius: 3px;
+}
+
+#comment-input-area, #post-input-area {
+    width: 100%;
+}
+
+.comment-section .input-group {
+    width: 40%;
+}
+
+#post-input-area {
+    height: 10em;
+    margin-top: 0.5em;
+    padding: 5px;
+}
+
+#post-title-input {
+    margin-top: 1.5em;
+    width: 100%;
+    padding: 5px;
+}
+
+#entry-container {
+    white-space: pre-wrap;
+}
+
+#tag-input-container {
+    width: 100%;
+    margin-bottom: 0.5em;
+}
+
+#tag-container {
+}
+
+.entry-tag-container {
+    float: left;
+    margin-right: 0.5em;
+    margin-bottom: 0.5em;
+}
+
+.selectable-keyword {
+    border-radius: 2em;
+    padding: 1em;
+}
+
+.verification-status {
+    font-family: 'Open Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+}
+
+.verification-not-verified:hover {
+    /*text-decoration: underline;*/
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.verification-verified {
+    color: green;
+}
+
+.verification-not-verified {
+    color: red;
+}
+
+#post-not-found-error {
+    margin-top: 100px;
+    margin-bottom: 100px;
+}
+
+.user-creation-container h1 {
+    margin-bottom: 0.5em;
+}
+
+.user-creation-input {
+    width: 30%;
+    margin-bottom: 0.5em;
+}
+
+.user-creation-input:not(button) {
+    padding: 5px;
+}
+
+#user-creation-error, #change-password-error {
+    display: none;
+    color: red;
+    white-space: pre-wrap;
+    margin-bottom: 0.5em;
+    font-size: 1em;
+}
+
+.author-option-link {
+    font-family: 'Open Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+}
+
+.author-option-link:hover {
+    cursor: pointer;
+    color: #0085a1;
+}
+
+.delete-post-modal-item {
+    margin-bottom: 0.5em;
+}
+
+#admin-checkbox-label, #admin-checkbox {
+    user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    -webkit-user-select: none;
+    cursor: pointer;
+}

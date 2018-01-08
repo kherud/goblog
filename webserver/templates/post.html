@@ -1,0 +1,90 @@
+<!-- 7640689, 4875373, 9348226 -->
+{{ define "mainContent" }}
+{{ if .post.Id }}
+<div class="container" id="content-header">
+    <div class="row">
+        <div class="col-lg-8 col-md-10 mx-auto">
+            <div class="post-heading">
+                <h1>{{ .post.Title }}</h1>
+                <span class="meta">Posted by
+                <span class="font-italic">{{ .post.Author }}</span>
+                on {{ .post.Date }}</span>
+                {{ if .user }}
+                {{ if eq .post.AuthorId .user.Id }}
+                    <br>
+                    <a class="author-option-link" href="?edit={{ .post.Id }}">Edit</a>
+                    <a class="author-option-link" href="#" data-toggle="modal" data-target="#delete-post-modal">Delete</a>
+                    <div id="delete-post-modal" class="modal fade" role="dialog">
+                        <canvas id="q" data-dismiss="modal"></canvas>
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+                                <div class="modal-body text-center">
+                                    <h1 class="modal-title delete-post-modal-item">Are you sure you want to delete this post?</h1>
+                                    <button type="button" class="btn btn-default delete-post-modal-item" onclick="deletePost('{{ .post.Id }}')">Delete</button>
+                                    <button type="button" class="btn btn-default delete-post-modal-item" data-dismiss="modal">Close</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {{ end }}
+                {{ end }}
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Post Content -->
+<article>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-md-10 mx-auto">
+                <p id="entry-container">{{ .post.Text }}</p>
+                <div class="text-center">
+                {{ range .post.Keywords }}
+                        <button class="btn btn-outline-secondary selectable-keyword" onclick="window.location='?search={{ . }}'">
+                            <span class="text-bold">#</span>{{ . }}
+                        </button>
+                {{ end }}
+                </div>
+                <hr>
+                <div class="comment-section">
+                    <form action="?comment={{ .post.Id }}" method="post">
+                        <textarea class="text-area" id="comment-input-area" placeholder="Comment..."
+                                  name="text" required="required"></textarea>
+                        <div class="input-group pull-right">
+                            <input type="text" class="form-control" placeholder="Anonymous" name="name" onkeyup="saveNickname()" id="nickname-input">
+                            <span class="input-group-btn">
+                    <button class="btn btn-secondary" type="submit">Post</button>
+                </span>
+                        </div>
+                        <div class="clearfix"></div>
+                    </form>
+                </div>
+            {{ if not .post.Comments}}
+                <hr>
+                <h1>No verified comments yet.</h1>
+            {{ else }}
+            {{ range .post.Comments }}
+            {{ if or .Verified $.user }}
+                <hr>
+                <div>
+                    <span>{{ .Text }}</span><br>
+                    <small><span class="font-weight-bold">{{ .Author }}</span> {{ .Date }}</small>
+                    {{ if and .Verified $.user }}
+                    <span class="verification-status verification-verified">Verified</span>
+                    {{ else if $.user }}
+                    <span class="verification-status verification-not-verified" onclick="verifyComment('{{ $.post.Id }}', '{{ .Id }}')" id="not-verified-status-{{ .Id }}">Verify</span>
+                    {{ end }}
+                </div>
+            {{ end }}
+            {{ end }}
+            {{ end }}
+            </div>
+        </div>
+    </div>
+</article>
+{{ else }}
+<div class="text-center" id="post-not-found-error">
+<h1>404: Post not found.</h1>
+</div>
+{{ end }}
+{{ end }}

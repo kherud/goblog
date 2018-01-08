@@ -1,0 +1,25 @@
+<!-- 7640689, 4875373, 9348226 -->
+{{ define "mainContent" }}
+<div class="container">
+    <div class="site-heading text-center">
+        <h1>Create an entry...</h1>
+    </div>
+    <div class="comment-section">
+        <form action="?newPost" method="post">
+            <input placeholder="Title (not required)" type="text" name="title" id="post-title-input">
+            <textarea class="text-area" id="post-input-area" placeholder="Post something..." name="text"
+                      required="required"></textarea>
+            <div id="tag-container"></div>
+            <div class="input-group" id="tag-input-container">
+                <input type="text" class="form-control" placeholder="Keyword (not required)" id="keyword-input" onkeyup="resetTagInput()">
+                <span class="input-group-btn">
+                    <button class="btn btn-secondary" type="button" onclick="addTag()">Add</button>
+                </span>
+            </div>
+            <div class="text-center">
+                <button class="btn btn-secondary" type="submit">Post</button>
+            </div>
+        </form>
+    </div>
+</div>
+{{ end }}

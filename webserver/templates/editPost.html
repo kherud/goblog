@@ -1,0 +1,40 @@
+<!-- 7640689, 4875373, 9348226 -->
+{{ define "mainContent" }}
+{{ if .post.Id }}
+<div class="container">
+    <div class="site-heading text-center">
+        <h1>Edit post '{{ .post.Title }}'...</h1>
+    </div>
+    <div class="comment-section">
+        <form action="?update={{ .post.Id }}" method="post">
+            <input placeholder="Title (not required)" type="text" name="title" id="post-title-input" value="{{ .post.Title }}">
+            <textarea class="text-area" id="post-input-area" placeholder="Post something..." name="text"
+                      required="required">{{ .post.Text }}</textarea>
+            <div id="tag-container">
+                {{ range  $index, $value := .post.Keywords }}
+                <div id="tag-container">
+                    <div class="input-group entry-tag-container" id="tag-container-{{ $index }}">
+                        <input class="form-control entry-tag" name="tag" readonly="" value="{{ $value }}">
+                        <span class="input-group-btn"><button class="btn btn-secondary" onclick="removeTag('tag-container-{{ $index }}')">x</button></span>
+                    </div>
+                </div>
+                {{ end }}
+            </div>
+            <div class="input-group" id="tag-input-container">
+                <input type="text" class="form-control" placeholder="Keyword (not required)" id="keyword-input" onkeyup="resetTagInput()">
+                <span class="input-group-btn">
+                    <button class="btn btn-secondary" type="button" onclick="addTag()">Add</button>
+                </span>
+            </div>
+            <div class="text-center">
+                <button class="btn btn-secondary" type="submit">Edit</button>
+            </div>
+        </form>
+    </div>
+</div>
+{{ else }}
+<div class="text-center" id="post-not-found-error">
+    <h1>404: Post not found.</h1>
+</div>
+{{ end }}
+{{ end }}
